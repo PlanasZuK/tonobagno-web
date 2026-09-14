@@ -142,6 +142,16 @@ function initPage(scope) {
           scrollTrigger: { trigger: fig, start: "top 92%", end: "top 40%", scrub: 0.8 } });
       });
 
+      // Brand bands: two rows drift in opposite directions, forever; the pointer slows them down.
+      scope.querySelectorAll(".marquee").forEach((m) => {
+        const track = m.querySelector(".track"); if (!track) return;
+        const rtl = m.dataset.dir === "rtl"; const half = () => track.scrollWidth / 2;
+        const tw = gsap.fromTo(track, { x: rtl ? -half() : 0 }, { x: rtl ? 0 : -half(), ease: "none", duration: half() / 42, repeat: -1 });
+        m.addEventListener("pointerenter", () => gsap.to(tw, { timeScale: 0.18, duration: 0.8, ease: "power2.out" }));
+        m.addEventListener("pointerleave", () => gsap.to(tw, { timeScale: 1, duration: 0.8, ease: "power2.out" }));
+        ScrollTrigger.create({ trigger: m, start: "top bottom", end: "bottom top", onToggle: (st) => (st.isActive ? tw.play() : tw.pause()) });
+      });
+
       // Rows arrive one after another (masked, once). Fast scrolling just plays them faster.
       gsap.utils.toArray(".rows, .index-list, .toc, .people").forEach((list) => {
         const items = list.querySelectorAll(":scope > li");
