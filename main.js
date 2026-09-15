@@ -217,7 +217,6 @@ function initPage(scope) {
     btn.addEventListener("click", () => {
       const open = btn.getAttribute("aria-expanded") === "true";
       btn.setAttribute("aria-expanded", String(!open));
-      if (!open && btn.dataset.pick) setMaterial(btn.dataset.pick);
       setTimeout(() => ScrollTrigger.refresh(), 950);
     });
   });
