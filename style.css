@@ -558,16 +558,17 @@ main { position: relative; z-index: 1; }
 /* Novedades index */
 .novdex { border-top: 1px solid var(--line); }
 .novdex > li { border-bottom: 1px solid var(--line); }
-.novdex a { display: grid; grid-template-columns: 88px minmax(0, 5fr) minmax(0, 6fr) auto; column-gap: var(--gutter); align-items: center; padding: .9rem 0; text-decoration: none; min-height: 44px; transition: opacity var(--t-hover) var(--ease-out); }
+.novdex a { display: grid; grid-template-columns: 88px minmax(0, 5fr) minmax(0, 6fr) 9rem; column-gap: var(--gutter); align-items: center; padding: .9rem 0; text-decoration: none; min-height: 44px; transition: opacity var(--t-hover) var(--ease-out); }
 .novdex:hover a:not(:hover) { opacity: .45; }
 .novdex .media { aspect-ratio: 4 / 3; width: 88px; }
 .novdex .t { font-weight: 500; letter-spacing: -.01em; line-height: 1.15; }
 .novdex .m { font-size: var(--step--1); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: clip; }
-.novdex .c { font-size: var(--step--1); color: var(--ink-2); white-space: nowrap; }
+.novdex .c { font-size: var(--step--1); color: var(--ink-2); white-space: nowrap; text-align: right; }
 .posts { border-top: 1px solid var(--line); }
 .posts li { border-bottom: 1px solid var(--line); }
-.posts a { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) auto; column-gap: var(--gutter); align-items: baseline; padding: 1rem 0; text-decoration: none; min-height: 44px; transition: opacity var(--t-hover) var(--ease-out); }
+.posts a { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) 7rem; column-gap: var(--gutter); align-items: baseline; padding: 1rem 0; text-decoration: none; min-height: 44px; transition: opacity var(--t-hover) var(--ease-out); }
 .posts:hover a:not(:hover) { opacity: .45; }
+.posts .d { text-align: right; }
 .posts .t { font-size: var(--step-1); font-weight: 500; letter-spacing: -.015em; line-height: 1.1; }
 .posts .m { font-size: var(--step--1); color: var(--ink-2); }
 .posts .d { font-size: var(--step--1); color: var(--ink-2); }
