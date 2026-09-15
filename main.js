@@ -356,22 +356,18 @@ function measureVeil() {
   veilImgs.forEach((im) => { im.style.transition = "none"; im.style.width = ""; im.removeAttribute("data-on"); });
   vSmall = veilImgs[0].offsetWidth; veilImgs[0].setAttribute("data-on", ""); vBig = veilImgs[0].offsetWidth; veilImgs[0].removeAttribute("data-on");
 }
-// A ripple: the crest travels to the end of the row and bounces back to the chosen sample, like a ball rolling over the tiles.
-// Each tile swells to a middle size and settles with a sine curve; the next starts before the previous has settled.
-function ripple(tl, at, order, { d = 0.3, step = 0.085, mid = 0.55, ease = "sine.inOut" } = {}) {
-  const w = vSmall + (vBig - vSmall) * mid;
-  order.forEach((idx, k) => { const im = veilImgs[idx], t = at + k * step;
-    tl.to(im, { width: w, duration: d, ease }, t);
-    if (k < order.length - 1) tl.to(im, { width: vSmall, duration: d, ease }, t + d); });
-  return at + (order.length - 1) * step + d;
-}
-function journey(tl, at, chosen, opts = {}) {
-  const n = veilImgs.length, c = veilImgs.indexOf(chosen);
-  const order = [...Array(n).keys()];                                      // there
-  for (let i = n - 2; i >= c; i--) order.push(i);                          // and back to yours
-  const end = ripple(tl, at, order, opts);
-  tl.to(chosen, { width: vBig, duration: 0.42, ease: "power3.out" }, end - (opts.d || 0.3) * 0.5); // and it swells fully
-  return end + 0.1;
+// One crest rolls over the row: each tile's width is a raised-cosine bump around the crest position, and the bumps of
+// neighbouring tiles always add up to one tile, so the row keeps its width and nothing drifts. The crest runs to the end
+// of the row, turns and comes back to yours, growing to full size as it settles. One value, one paint per frame.
+const bump = (d) => (d < 1 ? 0.5 * (1 + Math.cos(Math.PI * d)) : 0);
+function journey(tl, at, chosen, { go = 0.85, back = 0.75, amp = 0.62 } = {}) {
+  const n = veilImgs.length, c = Math.max(0, veilImgs.indexOf(chosen)), span = vBig - vSmall;
+  const s = { p: -1.2, a: amp };
+  const paint = () => { for (let i = 0; i < n; i++) veilImgs[i].style.width = (vSmall + span * s.a * bump(Math.abs(i - s.p))).toFixed(2) + "px"; };
+  tl.to(s, { p: n - 1, duration: go, ease: "sine.in", onUpdate: paint }, at);
+  const backD = Math.max(0.36, back * (n - 1 - c) / (n - 1));
+  tl.to(s, { p: c, a: 1, duration: backD, ease: "sine.out", onUpdate: paint }, at + go);
+  return at + go + backD;
 }
 function prepVeil() { measureVeil(); gsap.set(veilImgs, { width: vSmall, clearProps: "transform", opacity: 1 }); }
 function restVeil() { setMaterial(root.dataset.material, { persist: false }); gsap.set(veilImgs, { clearProps: "transform,opacity,width" }); requestAnimationFrame(() => veilImgs.forEach((im) => (im.style.transition = ""))); }
@@ -380,13 +376,13 @@ if (veil && !reduce) {
   gsap.set(veil, { clipPath: CL.full });
   prepVeil(); gsap.set(veilImgs, { y: 30, opacity: 0 });
   const chosen = veilImgs.find((im) => im.dataset.material === root.dataset.material) || veilImgs[0];
-  const tl = gsap.timeline({ onComplete: () => { root.classList.add("loaded"); restVeil(); } });
+  const tl = gsap.timeline({ onComplete: () => root.classList.add("loaded") });
   tl.to(veilImgs, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.05 }, 0.05);
   const line = veil.querySelector(".veil-line"); if (line) tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: "expo.inOut" }, 0.25);
   if (veilWord) tl.fromTo(veilWord.querySelectorAll("span > span"), { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: "expo.out", stagger: 0.08 }, 0.45);
   const end = journey(tl, 0.5, chosen);
-  tl.add(() => lift(), end + 0.3)
-    .add(() => initPage(document), end + 0.5);
+  tl.add(() => lift(() => restVeil()), end + 0.22)
+    .add(() => initPage(document), end + 0.42);
 } else {
   root.classList.add("loaded");
   if (veil) gsap.set(veil, { clipPath: CL.top });
@@ -409,7 +405,7 @@ async function go(url, push = true) {
     if (line) tlc.to(line, { scaleX: 1, duration: 0.9, ease: "expo.inOut" }, arrived - 0.35);
     if (veilWord) tlc.to(veilWord.querySelectorAll("span > span"), { yPercent: 0, duration: 0.8, ease: "expo.out", stagger: 0.07 }, arrived - 0.3);
     const chosen = veilImgs.find((im) => im.dataset.material === root.dataset.material) || veilImgs[0];
-    const end = journey(tlc, arrived - 0.2, chosen, { d: 0.24, step: 0.07 });
+    const end = journey(tlc, arrived - 0.2, chosen, { go: 0.7, back: 0.6 });
     tlc.to({}, { duration: 0.25 }, end);
     const [html] = await Promise.all([
       fetch(url, { headers: { "X-Requested-With": "swap" } }).then((r) => r.text()),
