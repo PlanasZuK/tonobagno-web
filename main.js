@@ -356,18 +356,20 @@ function measureVeil() {
   veilImgs.forEach((im) => { im.style.transition = "none"; im.style.width = ""; im.removeAttribute("data-on"); });
   vSmall = veilImgs[0].offsetWidth; veilImgs[0].setAttribute("data-on", ""); vBig = veilImgs[0].offsetWidth; veilImgs[0].removeAttribute("data-on");
 }
-// One crest rolls over the row: each tile's width is a raised-cosine bump around the crest position, and the bumps of
-// neighbouring tiles always add up to one tile, so the row keeps its width and nothing drifts. The crest runs to the end
-// of the row, turns and comes back to yours, growing to full size as it settles. One value, one paint per frame.
-const bump = (d) => (d < 1 ? 0.5 * (1 + Math.cos(Math.PI * d)) : 0);
-function journey(tl, at, chosen, { go = 0.85, back = 0.75, amp = 0.62 } = {}) {
+// The arpeggio: one wave rolls over the row at constant speed. Each tile's width follows a raised-cosine bump around the
+// wave's position, so tiles rise and settle one after another, several in motion at once, never fighting each other.
+// The wave runs to the end of the row, turns and comes back to yours while it narrows to a single tile, so the row
+// ends exactly as the hero starts: yours big, the rest small. One value, one paint per frame.
+const bump = (d, w) => (d < w ? 0.5 * (1 + Math.cos(Math.PI * d / w)) : 0);
+function journey(tl, at, chosen, { speed = 10, wave = 1.7 } = {}) {
   const n = veilImgs.length, c = Math.max(0, veilImgs.indexOf(chosen)), span = vBig - vSmall;
-  const s = { p: -1.2, a: amp };
-  const paint = () => { for (let i = 0; i < n; i++) veilImgs[i].style.width = (vSmall + span * s.a * bump(Math.abs(i - s.p))).toFixed(2) + "px"; };
-  tl.to(s, { p: n - 1, duration: go, ease: "sine.in", onUpdate: paint }, at);
-  const backD = Math.max(0.36, back * (n - 1 - c) / (n - 1));
-  tl.to(s, { p: c, a: 1, duration: backD, ease: "sine.out", onUpdate: paint }, at + go);
-  return at + go + backD;
+  const s = { p: -wave, w: wave };
+  const paint = () => { for (let i = 0; i < n; i++) veilImgs[i].style.width = (vSmall + span * bump(Math.abs(i - s.p), s.w)).toFixed(2) + "px"; };
+  const go = (n - 1 + wave) / speed;
+  tl.to(s, { p: n - 1, duration: go, ease: "none", onUpdate: paint }, at);
+  const back = Math.max(0.32, (n - 1 - c) / speed * 1.5);
+  tl.to(s, { p: c, w: 1, duration: back, ease: "sine.out", onUpdate: paint }, at + go);
+  return at + go + back;
 }
 function prepVeil() { measureVeil(); gsap.set(veilImgs, { width: vSmall, clearProps: "transform", opacity: 1 }); }
 function restVeil() { setMaterial(root.dataset.material, { persist: false }); gsap.set(veilImgs, { clearProps: "transform,opacity,width" }); requestAnimationFrame(() => veilImgs.forEach((im) => (im.style.transition = ""))); }
@@ -405,7 +407,7 @@ async function go(url, push = true) {
     if (line) tlc.to(line, { scaleX: 1, duration: 0.9, ease: "expo.inOut" }, arrived - 0.35);
     if (veilWord) tlc.to(veilWord.querySelectorAll("span > span"), { yPercent: 0, duration: 0.8, ease: "expo.out", stagger: 0.07 }, arrived - 0.3);
     const chosen = veilImgs.find((im) => im.dataset.material === root.dataset.material) || veilImgs[0];
-    const end = journey(tlc, arrived - 0.2, chosen, { go: 0.7, back: 0.6 });
+    const end = journey(tlc, arrived - 0.2, chosen, { speed: 12 });
     tlc.to({}, { duration: 0.25 }, end);
     const [html] = await Promise.all([
       fetch(url, { headers: { "X-Requested-With": "swap" } }).then((r) => r.text()),

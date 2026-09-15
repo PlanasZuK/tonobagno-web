@@ -339,7 +339,7 @@ main { position: relative; z-index: 1; }
 .veil .veil-word > span { display: block; overflow: clip; }
 .veil .veil-word > span > span { display: block; }
 .veil .veil-box { display: grid; row-gap: clamp(1rem, 2vw, 1.6rem); justify-items: start; width: calc(6 * clamp(52px, 6vw, 88px) + clamp(110px, 12.5vw, 190px) + 6 * clamp(8px, 1.2vw, 20px)); }
-.veil .veil-tray { display: flex; gap: clamp(8px, 1.2vw, 20px); align-items: flex-end; height: calc(clamp(110px, 12.5vw, 190px) * 1.382); }
+.veil .veil-tray { display: flex; gap: clamp(8px, 1.2vw, 20px); align-items: flex-end; height: calc(clamp(110px, 12.5vw, 190px) * 1.382); width: 100%; contain: layout; }
 .veil .veil-tray img { width: clamp(52px, 6vw, 88px); aspect-ratio: 396 / 547; object-fit: cover; opacity: 0; transition: width .55s cubic-bezier(.76, 0, .24, 1); }
 .veil .veil-tray img[data-on] { width: clamp(110px, 12.5vw, 190px); }
 .veil .veil-word { color: var(--ground); font-weight: 500; letter-spacing: -.01em; display: grid; row-gap: .15em; }
